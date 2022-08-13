@@ -1,3 +1,9 @@
 .env
 build
 node_modules
+package-lock.json
+
+# server generated data
+bands.json
+reservations.json
+shows.json
