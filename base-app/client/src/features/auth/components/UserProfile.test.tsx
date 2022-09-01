@@ -11,8 +11,9 @@ test("greets the user", () => {
     expect(screen.getByText(/hi, booking@avalancheofcheese.com/i)).toBeInTheDocument();
 });
 
-test("redirects to sign-in of user is falsy", () => {
-    render(<UserProfile />);
+test("redirects to /signin if user is falsy", () => {
+    const {history} = render(<UserProfile />);
 
     expect(screen.queryByText(/hi/i)).not.toBeInTheDocument();
+    expect(history.location.pathname).toBe("/signin");
 })
