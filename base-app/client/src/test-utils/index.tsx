@@ -5,7 +5,7 @@ import {
 } from "@testing-library/react";
 import { FC, ReactElement } from "react";
 import { Provider } from "react-redux";
-import { createMemoryHistory } from "history";
+import { createMemoryHistory, MemoryHistory } from "history";
 import { Router } from "react-router";
 
 import { configureStoreWithMiddlewares, RootState } from "../app/store";
@@ -17,17 +17,22 @@ type CustomRenderOptions = {
   renderOptions?: Omit<RenderOptions, "wrapper">;
 };
 
+type CustomRenderResult = RenderResult & {history: MemoryHistory};
+
 function render(
   ui: ReactElement,
   { preLoadedState = {}, routeHistory, initialRouteIndex, ...renderOptions }: CustomRenderOptions = {}
-): RenderResult {
-  const Wrapper: FC = ({ children }) => {
-    const store = configureStoreWithMiddlewares(preLoadedState);
+): CustomRenderResult {
     const history = createMemoryHistory({initialEntries: routeHistory, initialIndex: initialRouteIndex});
+    const Wrapper: FC = ({ children }) => {
+    const store = configureStoreWithMiddlewares(preLoadedState);
+
     return <Provider store={store}><Router history={history}>{children}</Router></Provider>;
   };
 
-  return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
+  const rtlRenderObject = rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
+
+  return {...rtlRenderObject, history};
 }
 
 export * from "@testing-library/react";
