@@ -14,4 +14,8 @@ test("displays relevant details for non-sold-out show", async () => {
     name: /tickets/i,
   });
   expect(ticketsButton).toBeInTheDocument();
+  const bandName = getByRole(nonSoldOutShow, "heading", { name: /avalanche of cheese/i });
+  expect(bandName).toBeInTheDocument();
+  const bandDescription = getByText(nonSoldOutShow, "rollicking country with ambitious kazoo solos");
+  expect(bandDescription).toBeInTheDocument()
 });
