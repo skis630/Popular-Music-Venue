@@ -8,7 +8,7 @@ export const handlers = [
   rest.get(showsUrl, (req, res, ctx) => {
     return res(ctx.json({ shows }));
   }),
-  rest.get(`${bandUrl}:bandId`, (req, res, ctx) => {
+  rest.get(`${bandUrl}/:bandId`, (req, res, ctx) => {
     const { bandId } = req.params;
 
     // bandId is conveniently the index in the bands array
