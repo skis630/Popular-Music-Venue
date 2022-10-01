@@ -13,5 +13,11 @@ export const handlers = [
 
     // bandId is conveniently the index in the bands array
     return res(ctx.json({ band: bands[bandId] }))
+  }),
+  rest.get("http://localhost:3030/shows/:showId", (req, res, ctx) => {
+    const { showId } = req.params;
+
+    // showId is conveniently the index in the bands array
+    return res(ctx.json({ show: shows[showId] }))
   })
 ];
