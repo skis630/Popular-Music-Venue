@@ -10,4 +10,6 @@ test("tickets page dislays band name for correct showId", async () => {
     name: /Avalanche of Cheese/i,
   });
   expect(heading).toBeInTheDocument();
+
+  // more tests here
 });
