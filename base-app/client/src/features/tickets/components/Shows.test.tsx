@@ -1,4 +1,5 @@
 import {
+    fireEvent,
   getByRole,
   getByText,
   render,
@@ -32,4 +33,13 @@ test("displays relevant details for sold out show", async () => {
     expect(bandName).toBeInTheDocument();
     const bandDescription = getByText(soldOutShow, "serious world music with an iconic musical saw");
     expect(bandDescription).toBeInTheDocument();
+});
+
+test("redirects to correct tickets URL when 'tickets' is clicked", async () => {
+    const { history } = render(<Shows />);
+
+    const ticketsButton = await screen.findByRole("button", { name: /tickets/i });
+    fireEvent.click(ticketsButton);
+
+    expect(history.location.pathname).toBe("/tickets/0");
 })
