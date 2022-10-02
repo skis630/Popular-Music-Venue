@@ -19,5 +19,8 @@ export const handlers = [
 
     // showId is conveniently the index in the bands array
     return res(ctx.json({ show: shows[showId] }))
+  }),
+  rest.patch(`${showsUrl}/:showId/hold/:holdId`, (req, res, ctx) => {
+    return res(ctx.status(200));
   })
 ];
