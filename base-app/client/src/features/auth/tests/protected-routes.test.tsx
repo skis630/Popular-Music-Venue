@@ -84,3 +84,37 @@ test("unsuccessful login followed by successful login", async () => {
     expect(history.entries).toHaveLength(1);
   });
 });
+
+const serverError = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition,
+  ctx: RestContext
+) => res(ctx.status(500));
+
+test("login failure due to server error", async () => {
+  const errorHandler = rest.post(`${baseUrl}/${endpoints.signIn}`, serverError);
+  server.resetHandlers(...handlers, errorHandler);
+
+  const { history } = render(<App />, { routeHistory: ["/tickets/1"] });
+
+  // Sign in after redirect
+  const emailField = screen.getByLabelText(/email/i);
+  userEvent.type(emailField, "booking@avalancheofcheese.com");
+
+  const passwordField = screen.getByLabelText(/password/i);
+  userEvent.type(passwordField, "iheartcheese");
+
+  const authForm = screen.getByTestId("sign-in-form");
+  const authButton = getByRole(authForm, "button", { name: /sign in/i });
+  userEvent.click(authButton);
+
+  //   behavioral assertion
+  const heading = await screen.findByRole("heading", { name: /sign in/i });
+  expect(heading).toBeInTheDocument();
+
+  //   unit test assertion
+  await waitFor(() => {
+    expect(history.location.pathname).toBe("/signin");
+    expect(history.entries.length).toBe(1);
+  });
+});
