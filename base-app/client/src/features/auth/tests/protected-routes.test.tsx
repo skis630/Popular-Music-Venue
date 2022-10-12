@@ -122,72 +122,68 @@ test("signin server error followed by successful signin", async () => {
   });
 });
 
-const errorResponseResolver = (statusCode: number, errorMessage: string) => {
-  return (
-    req: RestRequest<DefaultRequestBody, RequestParams>,
-    res: ResponseComposition,
-    ctx: RestContext
-  ) =>
-    res(
-      ctx.status(statusCode),
-      ctx.json({
-        errorMessage,
-      })
-    );
-};
+const signUpFailure = (
+  req: RestRequest<DefaultRequestBody, RequestParams>,
+  res: ResponseComposition,
+  ctx: RestContext
+) =>
+  res(
+    ctx.status(400),
+    ctx.json({ errorMessage: "Email address already in use" })
+  );
 
 test.each([
   {
-    testName: "login failure",
-    route: endpoints.signIn,
-    statusCode: 401,
-    buttonName: /sign in/i,
-    serverMessage: "Wrong username or password. please try again.",
+    endpoint: endpoints.signIn,
+    outcome: "failure",
+    responseResolver: signInFailure,
+    buttonNameRegex: /sign in/i,
   },
   {
-    testName: "login server error",
-    route: endpoints.signIn,
-    statusCode: 500,
-    buttonName: /sign in/i,
-    serverMessage: "Server error. Please try again",
+    endpoint: endpoints.signIn,
+    outcome: "server error",
+    responseResolver: serverError,
+    buttonNameRegex: /sign in/i,
   },
   {
-    testName: "signup failure",
-    route: endpoints.signUp,
-    statusCode: 400,
-    buttonName: /sign up/i,
-    serverMessage: "Email address already in use.",
+    endpoint: endpoints.signUp,
+    outcome: "failure",
+    responseResolver: signUpFailure,
+    buttonNameRegex: /sign up/i,
   },
   {
-    testName: "signup server error",
-    route: endpoints.signUp,
-    statusCode: 500,
-    buttonName: /sign up/i,
-    serverMessage: "Server error. Please try again",
+    endpoint: endpoints.signUp,
+    outcome: "server error",
+    responseResolver: serverError,
+    buttonNameRegex: /sign up/i,
   },
 ])(
-  "$testName followed by successful one",
-  async ({ testName, statusCode, route, buttonName, serverMessage }) => {
+  "$outcome followed by success",
+  async ({ endpoint, outcome, responseResolver, buttonNameRegex }) => {
     const requestHandler = rest.post(
-      `${baseUrl}/${route}`,
-      errorResponseResolver(statusCode, serverMessage)
+      `${baseUrl}/${endpoint}`,
+      responseResolver
     );
+    // reset handlers to return unsuccessful response
     server.resetHandlers(...handlers, requestHandler);
 
     const { history } = render(<App />, { routeHistory: ["/tickets/1"] });
 
+    // sign-in/sign-up after redirect
     const emailField = screen.getByLabelText(/email/i);
     userEvent.type(emailField, "booking@avalancheofcheese.com");
 
     const passwordField = screen.getByLabelText(/password/i);
     userEvent.type(passwordField, "iheartcheese");
 
-    const authForm = screen.getByTestId("sign-in-form");
-    const authButton = getByRole(authForm, "button", { name: buttonName });
-    userEvent.click(authButton);
+    const actionForm = screen.getByTestId("sign-in-form");
+    const actionButton = getByRole(actionForm, "button", {
+      name: buttonNameRegex,
+    });
+    userEvent.click(actionButton);
 
     server.resetHandlers();
-    userEvent.click(authButton);
+    userEvent.click(actionButton);
 
     await waitFor(() => {
       expect(history.location.pathname).toBe("/tickets/1");
