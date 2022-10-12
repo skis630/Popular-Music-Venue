@@ -139,33 +139,37 @@ const errorResponseResolver = (statusCode: number, errorMessage: string) => {
 test.each([
   {
     testName: "login failure",
+    route: endpoints.signIn,
     statusCode: 401,
     buttonName: /sign in/i,
     serverMessage: "Wrong username or password. please try again.",
   },
   {
     testName: "login server error",
+    route: endpoints.signIn,
     statusCode: 500,
     buttonName: /sign in/i,
     serverMessage: "Server error. Please try again",
   },
   {
     testName: "signup failure",
+    route: endpoints.signUp,
     statusCode: 400,
     buttonName: /sign up/i,
     serverMessage: "Email address already in use.",
   },
   {
     testName: "signup server error",
+    route: endpoints.signUp,
     statusCode: 500,
     buttonName: /sign up/i,
     serverMessage: "Server error. Please try again",
   },
 ])(
   "$testName followed by successful one",
-  async ({ testName, statusCode, buttonName, serverMessage }) => {
+  async ({ testName, statusCode, route, buttonName, serverMessage }) => {
     const requestHandler = rest.post(
-      `${baseUrl}/${endpoints.signIn}`,
+      `${baseUrl}/${route}`,
       errorResponseResolver(statusCode, serverMessage)
     );
     server.resetHandlers(...handlers, requestHandler);
