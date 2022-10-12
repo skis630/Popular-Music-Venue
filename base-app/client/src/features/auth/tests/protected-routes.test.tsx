@@ -122,12 +122,18 @@ test("signin server error followed by successful signin", async () => {
   });
 });
 
-const errorResponseResolver = (statusCode: number) => {
+const errorResponseResolver = (statusCode: number, errorMessage: string) => {
   return (
     req: RestRequest<DefaultRequestBody, RequestParams>,
     res: ResponseComposition,
     ctx: RestContext
-  ) => res(ctx.status(statusCode));
+  ) =>
+    res(
+      ctx.status(statusCode),
+      ctx.json({
+        errorMessage,
+      })
+    );
 };
 
 test.each([
@@ -160,7 +166,7 @@ test.each([
   async ({ testName, statusCode, buttonName, serverMessage }) => {
     const requestHandler = rest.post(
       `${baseUrl}/${endpoints.signIn}`,
-      errorResponseResolver(statusCode)
+      errorResponseResolver(statusCode, serverMessage)
     );
     server.resetHandlers(...handlers, requestHandler);
 
