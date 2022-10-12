@@ -91,7 +91,7 @@ const serverError = (
   ctx: RestContext
 ) => res(ctx.status(500));
 
-test("login failure due to server error", async () => {
+test("signin server error followed by successful signin", async () => {
   const errorHandler = rest.post(`${baseUrl}/${endpoints.signIn}`, serverError);
   server.resetHandlers(...handlers, errorHandler);
 
@@ -108,13 +108,16 @@ test("login failure due to server error", async () => {
   const authButton = getByRole(authForm, "button", { name: /sign in/i });
   userEvent.click(authButton);
 
+  server.resetHandlers();
+  userEvent.click(authButton);
+
   //   behavioral assertion
-  const heading = await screen.findByRole("heading", { name: /sign in/i });
+  const heading = await screen.findByRole("heading", { name: /joyous/i });
   expect(heading).toBeInTheDocument();
 
   //   unit test assertion
   await waitFor(() => {
-    expect(history.location.pathname).toBe("/signin");
+    expect(history.location.pathname).toBe("/tickets/1");
     expect(history.entries.length).toBe(1);
   });
 });
