@@ -121,3 +121,67 @@ test("signin server error followed by successful signin", async () => {
     expect(history.entries.length).toBe(1);
   });
 });
+
+const errorResponseResolver = (statusCode: number) => {
+  return (
+    req: RestRequest<DefaultRequestBody, RequestParams>,
+    res: ResponseComposition,
+    ctx: RestContext
+  ) => res(ctx.status(statusCode));
+};
+
+test.each([
+  {
+    testName: "login failure",
+    statusCode: 401,
+    buttonName: /sign in/i,
+    serverMessage: "Wrong username or password. please try again.",
+  },
+  {
+    testName: "login server error",
+    statusCode: 500,
+    buttonName: /sign in/i,
+    serverMessage: "Server error. Please try again",
+  },
+  {
+    testName: "signup failure",
+    statusCode: 400,
+    buttonName: /sign up/i,
+    serverMessage: "Email address already in use.",
+  },
+  {
+    testName: "signup server error",
+    statusCode: 500,
+    buttonName: /sign up/i,
+    serverMessage: "Server error. Please try again",
+  },
+])(
+  "$testName followed by successful one",
+  async ({ testName, statusCode, buttonName, serverMessage }) => {
+    const requestHandler = rest.post(
+      `${baseUrl}/${endpoints.signIn}`,
+      errorResponseResolver(statusCode)
+    );
+    server.resetHandlers(...handlers, requestHandler);
+
+    const { history } = render(<App />, { routeHistory: ["/tickets/1"] });
+
+    const emailField = screen.getByLabelText(/email/i);
+    userEvent.type(emailField, "booking@avalancheofcheese.com");
+
+    const passwordField = screen.getByLabelText(/password/i);
+    userEvent.type(passwordField, "iheartcheese");
+
+    const authForm = screen.getByTestId("sign-in-form");
+    const authButton = getByRole(authForm, "button", { name: buttonName });
+    userEvent.click(authButton);
+
+    server.resetHandlers();
+    userEvent.click(authButton);
+
+    await waitFor(() => {
+      expect(history.location.pathname).toBe("/tickets/1");
+      expect(history.entries.length).toBe(1);
+    });
+  }
+);
