@@ -56,71 +56,11 @@ const signInFailure = (
   ctx: RestContext
 ) => res(ctx.status(401));
 
-test("unsuccessful login followed by successful login", async () => {
-  const errorHandler = rest.post(
-    `${baseUrl}/${endpoints.signIn}`,
-    signInFailure
-  );
-  server.resetHandlers(...handlers, errorHandler);
-
-  const { history } = render(<App />, { routeHistory: ["/tickets/1"] });
-
-  // Sign in after redirect
-  const emailField = screen.getByLabelText(/email/i);
-  userEvent.type(emailField, "booking@avalancheofcheese.com");
-
-  const passwordField = screen.getByLabelText(/password/i);
-  userEvent.type(passwordField, "iheartcheese");
-
-  const authForm = screen.getByTestId("sign-in-form");
-  const authButton = getByRole(authForm, "button", { name: /sign in/i });
-  userEvent.click(authButton);
-
-  server.resetHandlers();
-  userEvent.click(authButton);
-
-  await waitFor(() => {
-    expect(history.location.pathname).toBe("/tickets/1");
-    expect(history.entries).toHaveLength(1);
-  });
-});
-
 const serverError = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
   res: ResponseComposition,
   ctx: RestContext
 ) => res(ctx.status(500));
-
-test("signin server error followed by successful signin", async () => {
-  const errorHandler = rest.post(`${baseUrl}/${endpoints.signIn}`, serverError);
-  server.resetHandlers(...handlers, errorHandler);
-
-  const { history } = render(<App />, { routeHistory: ["/tickets/1"] });
-
-  // Sign in after redirect
-  const emailField = screen.getByLabelText(/email/i);
-  userEvent.type(emailField, "booking@avalancheofcheese.com");
-
-  const passwordField = screen.getByLabelText(/password/i);
-  userEvent.type(passwordField, "iheartcheese");
-
-  const authForm = screen.getByTestId("sign-in-form");
-  const authButton = getByRole(authForm, "button", { name: /sign in/i });
-  userEvent.click(authButton);
-
-  server.resetHandlers();
-  userEvent.click(authButton);
-
-  //   behavioral assertion
-  const heading = await screen.findByRole("heading", { name: /joyous/i });
-  expect(heading).toBeInTheDocument();
-
-  //   unit test assertion
-  await waitFor(() => {
-    expect(history.location.pathname).toBe("/tickets/1");
-    expect(history.entries.length).toBe(1);
-  });
-});
 
 const signUpFailure = (
   req: RestRequest<DefaultRequestBody, RequestParams>,
